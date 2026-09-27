@@ -1,0 +1,42 @@
+# Python byte code and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Large datasets (download separately / keep local)
+data/WELFake_Dataset.csv
+data/fake_news.csv
+data/raw/
+*.tar.gz
+*.zip
+
+# Large model binaries and checkpoints (distribute via download / training scripts)
+models/bert_model/
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs and scratch files
+*.log
+scratch/
+.system_generated/
