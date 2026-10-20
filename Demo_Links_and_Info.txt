@@ -1,0 +1,27 @@
+========================================================================
+PROJECT TRUTHRADAR: EXPLAINABLE FAKE NEWS DETECTION SYSTEM
+========================================================================
+Course: Natural Language Processing
+Evaluator: Prof. Kuntal Dey
+Submitted by: Sujay M. and Team
+
+1. LIVE DEPLOYED WEB APPLICATION:
+   https://truthradar-w9h24zcwzxu7hdo6fx9ckq.streamlit.app/
+
+2. GITHUB REPOSITORY (SOURCE CODE & EXPERIMENTS):
+   https://github.com/sujaymanasm/TruthRadar
+
+3. BENCHMARK DATASET:
+   IEEE WELFake Dataset (72,134 news articles, 95.73% test accuracy)
+
+4. TEST SUITE:
+   19 PyTest automated unit tests (100% passing)
+
+5. ARCHITECTURE OVERVIEW:
+   - Lexical Statistical Features: TF-IDF (10,000 n-grams) + Logistic Regression
+   - Contextual Semantics: DistilBERT Transformer Architecture
+   - Semantic Coherence: Sentence-BERT (MiniLM-L6-v2) for Headline-Body Consistency
+   - Sentiment & Affective Dynamics: VADER Lexicon Polarity
+   - Entity Recognition: spaCy Named Entity Extraction (PERSON, ORG, GPE, DATE)
+   - Explainability: Local Interpretable Model-agnostic Explanations (LIME)
+========================================================================
