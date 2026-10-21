@@ -123,6 +123,20 @@ def calculate_fake_score(
         weighted_fake_prob = min(1.0, weighted_fake_prob + 0.10)
         explanation_notes.append("Deception risk elevated: High sensationalism index detected (shouting caps & extreme intensifiers).")
 
+    # 4. Academic & Formal Broad-sheet Register Calibration
+    # Scientific abstracts and formal economic releases use complex grammar without partisan wire tags.
+    # When text exhibits collegiate reading levels (Grade 11+), rich vocabulary (TTR >= 0.65),
+    # zero sensationalism (<= 12/100), and no conspiracy tokens, calibrate against lexical dataset bias.
+    fk_grade = stylometrics_result.get("flesch_kincaid_grade", 0.0) if isinstance(stylometrics_result, dict) else 0.0
+    ttr = stylometrics_result.get("type_token_ratio", 0.0) if isinstance(stylometrics_result, dict) else 0.0
+    intens = stylometrics_result.get("intensifiers_found", []) if isinstance(stylometrics_result, dict) else []
+    conspiracy_terms = {"conspiracy", "secret", "miracle", "hoax", "banned", "censored", "insane", "traitor"}
+    has_conspiracy = any(term in intens for term in conspiracy_terms)
+
+    if sens_score <= 12.0 and fk_grade >= 11.0 and ttr >= 0.65 and not has_conspiracy and "High Trust" not in trust_tier:
+        weighted_fake_prob = weighted_fake_prob * 0.58
+        explanation_notes.append("Stylistic calibration: Formal academic/broadsheet register detected (Grade 11+, high vocabulary richness, zero shouting).")
+
     # Normalize probability to 0.0 - 1.0 range
     fake_probability = float(min(max(weighted_fake_prob, 0.0), 1.0))
     real_probability = float(round(1.0 - fake_probability, 4))
