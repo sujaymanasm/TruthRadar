@@ -552,9 +552,14 @@ if analyze_clicked:
             st.markdown("#### 🏷️ **Named Entities Identified**")
             if ner_eval.get("entities_by_type"):
                 st.write(f"**Engine:** {ner_eval.get('engine')}")
+                import html
                 for label, items in ner_eval["entities_by_type"].items():
-                    badge_class = "badge-person" if label == "PERSON" else "badge-org" if label == "ORG" else "badge-gpe" if label in ["GPE", "LOC"] else "badge-date" if label == "DATE" else "badge-money"
-                    items_str = " ".join([f"<span class='badge {badge_class}'>{it}</span>" for it in items[:6]])
+                    badge_class = "badge-person" if label in ["PERSON", "PERSON / ORG"] else "badge-org" if label == "ORG" else "badge-gpe" if label in ["GPE", "LOC"] else "badge-date" if label == "DATE" else "badge-money"
+                    badges = []
+                    for it in items[:6]:
+                        safe_it = html.escape(str(it)).replace("$", "&#36;")
+                        badges.append(f"<span class='badge {badge_class}'>{safe_it}</span>")
+                    items_str = " ".join(badges)
                     st.markdown(f"**{label}:** {items_str}", unsafe_allow_html=True)
             else:
                 st.info("No named entities detected in the text.")
