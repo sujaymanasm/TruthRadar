@@ -373,11 +373,12 @@ if analyze_clicked:
                 domain_eval = evaluate_domain_trust(url_input)
 
             # J. Generate Instant Forensic Audit PDF
+            calc_conf = fake_score_res.get("confidence_score", max(fake_score_res["fake_probability"], fake_score_res["real_probability"]))
             pdf_bytes = generate_forensic_pdf(
                 article_text=full_text_for_eval,
                 verdict=fake_score_res["prediction"],
                 fake_prob=fake_score_res["fake_percentage"] / 100.0,
-                confidence=fake_score_res["confidence_score"],
+                confidence=calc_conf,
                 sentiment_data=sentiment_eval,
                 entities_data=ner_eval.get("entities_by_type", {}),
                 lime_weights=lime_eval.get("raw_explanation", []),

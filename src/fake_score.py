@@ -130,6 +130,7 @@ def calculate_fake_score(
     }
 
     active_models = list(weights.keys())
+    confidence_score = float(max(fake_probability, real_probability))
 
     return {
         "prediction": prediction,
@@ -138,6 +139,7 @@ def calculate_fake_score(
         "fake_percentage": round(fake_probability * 100.0, 1),
         "real_percentage": round(real_probability * 100.0, 1),
         "confidence": confidence,
+        "confidence_score": confidence_score,
         "component_weights": weights,
         "component_scores": component_scores,
         "active_models": active_models,
