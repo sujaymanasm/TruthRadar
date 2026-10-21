@@ -82,6 +82,10 @@ st.markdown("""
         background: linear-gradient(135deg, #16A34A 0%, #166534 100%);
         box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
     }
+    .verdict-satire {
+        background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+    }
     .verdict-title {
         font-size: 2.2rem;
         font-weight: 900;
@@ -350,27 +354,29 @@ if analyze_clicked:
             # E. Named Entity Recognition
             ner_eval = extract_entities(full_text_for_eval)
 
-            # F. Multi-Signal Ensemble Scoring
-            fake_score_res = calculate_fake_score(
-                tfidf_result=tfidf_pred,
-                bert_result=bert_pred,
-                headline_result=headline_eval,
-                sentiment_result=sentiment_eval,
-                has_headline=has_explicit_headline
-            )
-
-            # G. LIME Explainability
-            lime_eval = explain_prediction(full_text_for_eval)
-
-            # H. Stylometric & Psycholinguistic Profiling
+            # F. Stylometric & Psycholinguistic Profiling
             stylometrics_eval = analyze_stylometrics(full_text_for_eval)
 
-            # I. Domain Trust Assessment
+            # G. Domain Trust Assessment
             domain_eval = None
             if input_source_meta.get("URL"):
                 domain_eval = evaluate_domain_trust(input_source_meta["URL"])
             elif url_input.strip():
                 domain_eval = evaluate_domain_trust(url_input)
+
+            # H. Multi-Signal Calibrated Ensemble Scoring
+            fake_score_res = calculate_fake_score(
+                tfidf_result=tfidf_pred,
+                bert_result=bert_pred,
+                headline_result=headline_eval,
+                sentiment_result=sentiment_eval,
+                has_headline=has_explicit_headline,
+                domain_result=domain_eval,
+                stylometrics_result=stylometrics_eval
+            )
+
+            # I. LIME Explainability
+            lime_eval = explain_prediction(full_text_for_eval)
 
             # J. Generate Instant Forensic Audit PDF
             calc_conf = fake_score_res.get("confidence_score", max(fake_score_res["fake_probability"], fake_score_res["real_probability"]))
@@ -394,9 +400,15 @@ if analyze_clicked:
         st.markdown("### 📊 **TruthRadar Authenticity Report**")
 
         # 1. Primary Verdict Card
-        is_fake = (fake_score_res["prediction"] == "FAKE NEWS")
-        card_class = "verdict-fake" if is_fake else "verdict-real"
-        badge_icon = "🚨" if is_fake else "✅"
+        if fake_score_res["prediction"] == "SATIRE / PARODY":
+            card_class = "verdict-satire"
+            badge_icon = "🎭"
+        elif fake_score_res["prediction"] == "FAKE NEWS":
+            card_class = "verdict-fake"
+            badge_icon = "🚨"
+        else:
+            card_class = "verdict-real"
+            badge_icon = "✅"
 
         st.markdown(f"""
         <div class='verdict-card {card_class}'>

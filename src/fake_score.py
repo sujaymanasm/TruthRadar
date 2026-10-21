@@ -2,8 +2,9 @@
 TruthRadar - Fake Score Multi-Signal Ensemble Engine
 ---------------------------------------------------
 Synthesizes predictions from multiple NLP models (TF-IDF + Logistic Regression,
-DistilBERT Transformer, Semantic Headline-Body Alignment, and Sentiment Polarity)
-into a unified, calibrated authenticity assessment.
+DistilBERT Transformer, Semantic Headline-Body Alignment, Sentiment Polarity,
+Psycholinguistic Stylometrics, and Domain Reputation) into a unified,
+calibrated authenticity assessment.
 """
 
 from typing import Dict, Any, Optional
@@ -16,31 +17,12 @@ def calculate_fake_score(
     bert_result: Optional[Dict[str, Any]] = None,
     headline_result: Optional[Dict[str, Any]] = None,
     sentiment_result: Optional[Dict[str, Any]] = None,
-    has_headline: bool = True
+    has_headline: bool = True,
+    domain_result: Optional[Dict[str, Any]] = None,
+    stylometrics_result: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Computes weighted ensemble fake news probability and verdict.
-
-    Args:
-        tfidf_result: Output dict from TfidfFakeNewsClassifier.predict().
-        bert_result: Output dict from BertFakeNewsClassifier.predict().
-        headline_result: Output dict from check_headline_body_consistency().
-        sentiment_result: Output dict from analyze_sentiment().
-        has_headline: Boolean indicating whether an explicit headline was analyzed.
-
-    Returns:
-        Dict containing:
-            - prediction: 'FAKE NEWS' or 'REAL NEWS'
-            - fake_probability: float (0.0 to 1.0)
-            - real_probability: float (0.0 to 1.0)
-            - fake_percentage: float (0.0 to 100.0)
-            - real_percentage: float (0.0 to 100.0)
-            - confidence: 'High', 'Medium', or 'Low'
-            - component_weights: Dict[str, float]
-            - component_scores: Dict[str, float]
-            - active_models: list[str]
-            - ensemble_mode: str
-            - explanation_notes: list[str]
     """
     tfidf_avail = tfidf_result.get("is_available", False)
     bert_avail = bert_result.get("is_available", False) if bert_result else False
@@ -50,11 +32,17 @@ def calculate_fake_score(
     tfidf_prob = tfidf_result.get("fake_probability", 0.50) if tfidf_avail else 0.50
     bert_prob = bert_result.get("fake_probability", 0.50) if bert_avail else 0.50
 
-    # Invert headline similarity into a fake risk signal (lower consistency -> higher fake risk)
-    # Scaled moderately so low consistency nudges but does not override classifiers
+    # Invert headline similarity with non-linear clickbait calibration
+    # Prevents modest thematic variance from disproportionately penalizing real articles
     if headline_avail:
         sim_score = headline_result.get("similarity_score", 0.70)
-        headline_fake_signal = float(1.0 - sim_score)
+        if sim_score >= 0.50:
+            headline_fake_signal = 0.15 # Strong alignment, very low fake risk
+        elif sim_score <= 0.20:
+            headline_fake_signal = 0.85 # Clickbait / topical mismatch
+        else:
+            # Linear scaling between 0.20 and 0.50
+            headline_fake_signal = 0.85 - ((sim_score - 0.20) / 0.30) * 0.70
     else:
         headline_fake_signal = 0.50
 
@@ -94,7 +82,7 @@ def calculate_fake_score(
             weights["TF-IDF"] * tfidf_prob +
             weights["Headline Consistency"] * headline_fake_signal
         )
-        explanation_notes.append("DistilBERT model weights not detected; weighted ensemble calibrated to TF-IDF baseline.")
+        explanation_notes.append("DistilBERT model weights not detected; calibrated to TF-IDF baseline.")
     elif tfidf_avail:
         # Only TF-IDF available
         weights["TF-IDF"] = 1.0
@@ -105,7 +93,31 @@ def calculate_fake_score(
         weights = {}
         ensemble_mode = "Heuristic Uncalibrated Default"
         weighted_fake_prob = 0.50
-        explanation_notes.append("No trained model artifacts detected. Run training script to generate predictions.")
+        explanation_notes.append("No trained model artifacts detected.")
+
+    # -------------------------------------------------------------
+    # Multi-Signal Contextual Calibration (Domain & Stylometrics)
+    # -------------------------------------------------------------
+    sens_score = stylometrics_result.get("sensationalism_score", 0.0) if stylometrics_result else 0.0
+    is_satire = domain_result.get("is_satire", False) if domain_result else False
+    trust_tier = domain_result.get("trust_tier", "") if domain_result else ""
+
+    # 1. Verified Journalism Calibration
+    # When accredited publishers investigate rumors, lexicons include words like 'death/rumour'.
+    # Grounding against high publisher accountability & low sensationalism resolves the Lexical Leakage Bias.
+    if "High Trust" in trust_tier and sens_score < 30.0:
+        weighted_fake_prob = weighted_fake_prob * 0.52
+        explanation_notes.append("Credibility calibration: Verified Tier-1 Publisher combined with measured, non-sensational phrasing.")
+
+    # 2. Documented Disinformation Calibration
+    if "High Risk" in trust_tier:
+        weighted_fake_prob = min(1.0, weighted_fake_prob * 1.30 + 0.15)
+        explanation_notes.append("Deception risk elevated: Domain is on accredited misinformation/conspiracy registries.")
+
+    # 3. Stylometric Sensationalism Penalty
+    if sens_score > 60.0:
+        weighted_fake_prob = min(1.0, weighted_fake_prob + 0.10)
+        explanation_notes.append("Deception risk elevated: High sensationalism index detected (shouting caps & extreme intensifiers).")
 
     # Normalize probability to 0.0 - 1.0 range
     fake_probability = float(min(max(weighted_fake_prob, 0.0), 1.0))
@@ -113,7 +125,9 @@ def calculate_fake_score(
     fake_probability = float(round(fake_probability, 4))
 
     # Determine final categorical prediction
-    if fake_probability >= config.DECISION_THRESHOLD:
+    if is_satire:
+        prediction = "SATIRE / PARODY"
+    elif fake_probability >= config.DECISION_THRESHOLD:
         prediction = "FAKE NEWS"
     else:
         prediction = "REAL NEWS"
@@ -126,7 +140,8 @@ def calculate_fake_score(
         "tfidf_fake_prob": round(tfidf_prob, 4) if tfidf_avail else None,
         "bert_fake_prob": round(bert_prob, 4) if bert_avail else None,
         "headline_similarity": round(headline_result.get("similarity_score", 0.0), 4) if headline_avail else None,
-        "sentiment_compound": round(sentiment_result.get("compound", 0.0), 4) if sentiment_result else None
+        "sentiment_compound": round(sentiment_result.get("compound", 0.0), 4) if sentiment_result else None,
+        "sensationalism_score": sens_score
     }
 
     active_models = list(weights.keys())
