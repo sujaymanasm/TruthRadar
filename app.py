@@ -365,15 +365,24 @@ if analyze_clicked:
                 domain_eval = evaluate_domain_trust(url_input)
 
             # H. Multi-Signal Calibrated Ensemble Scoring
-            fake_score_res = calculate_fake_score(
-                tfidf_result=tfidf_pred,
-                bert_result=bert_pred,
-                headline_result=headline_eval,
-                sentiment_result=sentiment_eval,
-                has_headline=has_explicit_headline,
-                domain_result=domain_eval,
-                stylometrics_result=stylometrics_eval
-            )
+            try:
+                fake_score_res = calculate_fake_score(
+                    tfidf_result=tfidf_pred,
+                    bert_result=bert_pred,
+                    headline_result=headline_eval,
+                    sentiment_result=sentiment_eval,
+                    has_headline=has_explicit_headline,
+                    domain_result=domain_eval,
+                    stylometrics_result=stylometrics_eval
+                )
+            except TypeError:
+                fake_score_res = calculate_fake_score(
+                    tfidf_result=tfidf_pred,
+                    bert_result=bert_pred,
+                    headline_result=headline_eval,
+                    sentiment_result=sentiment_eval,
+                    has_headline=has_explicit_headline
+                )
 
             # I. LIME Explainability
             lime_eval = explain_prediction(full_text_for_eval)

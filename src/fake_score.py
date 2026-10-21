@@ -19,21 +19,28 @@ def calculate_fake_score(
     sentiment_result: Optional[Dict[str, Any]] = None,
     has_headline: bool = True,
     domain_result: Optional[Dict[str, Any]] = None,
-    stylometrics_result: Optional[Dict[str, Any]] = None
+    stylometrics_result: Optional[Dict[str, Any]] = None,
+    **kwargs
 ) -> Dict[str, Any]:
     """
     Computes weighted ensemble fake news probability and verdict.
+    Safely accepts **kwargs to handle any cache/hot-reload mismatch.
     """
-    tfidf_avail = tfidf_result.get("is_available", False)
-    bert_avail = bert_result.get("is_available", False) if bert_result else False
-    headline_avail = headline_result.get("is_available", False) if (headline_result and has_headline) else False
+    # Fallback to kwargs if passed dynamically
+    if domain_result is None and "domain_result" in kwargs:
+        domain_result = kwargs["domain_result"]
+    if stylometrics_result is None and "stylometrics_result" in kwargs:
+        stylometrics_result = kwargs["stylometrics_result"]
+
+    tfidf_avail = tfidf_result.get("is_available", False) if isinstance(tfidf_result, dict) else False
+    bert_avail = bert_result.get("is_available", False) if (isinstance(bert_result, dict) and bert_result) else False
+    headline_avail = headline_result.get("is_available", False) if (isinstance(headline_result, dict) and headline_result and has_headline) else False
 
     # Extract component fake probabilities
     tfidf_prob = tfidf_result.get("fake_probability", 0.50) if tfidf_avail else 0.50
     bert_prob = bert_result.get("fake_probability", 0.50) if bert_avail else 0.50
 
     # Invert headline similarity with non-linear clickbait calibration
-    # Prevents modest thematic variance from disproportionately penalizing real articles
     if headline_avail:
         sim_score = headline_result.get("similarity_score", 0.70)
         if sim_score >= 0.50:
@@ -41,7 +48,6 @@ def calculate_fake_score(
         elif sim_score <= 0.20:
             headline_fake_signal = 0.85 # Clickbait / topical mismatch
         else:
-            # Linear scaling between 0.20 and 0.50
             headline_fake_signal = 0.85 - ((sim_score - 0.20) / 0.30) * 0.70
     else:
         headline_fake_signal = 0.50
@@ -98,13 +104,11 @@ def calculate_fake_score(
     # -------------------------------------------------------------
     # Multi-Signal Contextual Calibration (Domain & Stylometrics)
     # -------------------------------------------------------------
-    sens_score = stylometrics_result.get("sensationalism_score", 0.0) if stylometrics_result else 0.0
-    is_satire = domain_result.get("is_satire", False) if domain_result else False
-    trust_tier = domain_result.get("trust_tier", "") if domain_result else ""
+    sens_score = stylometrics_result.get("sensationalism_score", 0.0) if isinstance(stylometrics_result, dict) else 0.0
+    is_satire = domain_result.get("is_satire", False) if isinstance(domain_result, dict) else False
+    trust_tier = domain_result.get("trust_tier", "") if isinstance(domain_result, dict) else ""
 
     # 1. Verified Journalism Calibration
-    # When accredited publishers investigate rumors, lexicons include words like 'death/rumour'.
-    # Grounding against high publisher accountability & low sensationalism resolves the Lexical Leakage Bias.
     if "High Trust" in trust_tier and sens_score < 30.0:
         weighted_fake_prob = weighted_fake_prob * 0.52
         explanation_notes.append("Credibility calibration: Verified Tier-1 Publisher combined with measured, non-sensational phrasing.")
@@ -140,7 +144,7 @@ def calculate_fake_score(
         "tfidf_fake_prob": round(tfidf_prob, 4) if tfidf_avail else None,
         "bert_fake_prob": round(bert_prob, 4) if bert_avail else None,
         "headline_similarity": round(headline_result.get("similarity_score", 0.0), 4) if headline_avail else None,
-        "sentiment_compound": round(sentiment_result.get("compound", 0.0), 4) if sentiment_result else None,
+        "sentiment_compound": round(sentiment_result.get("compound", 0.0), 4) if isinstance(sentiment_result, dict) else None,
         "sensationalism_score": sens_score
     }
 
