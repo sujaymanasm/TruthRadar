@@ -10,12 +10,12 @@
 
 ```
 [00:00 - 01:00] Slide 1: Introduction & Real-World Motivation (1 min)
-[01:00 - 02:30] Slide 2: Problem Statement & Why Single Models Fail (1.5 min)
-[02:30 - 04:30] Slide 3: Multi-Signal NLP Architecture & Methodology (2 min)
-[04:30 - 06:15] LIVE DEMO: Streamlit Web Application Walkthrough (1.75 min)
-[06:15 - 07:15] Slide 4: Experimental Results & Benchmark on WELFake (1 min)
-[07:15 - 08:00] Slide 5: Limitations, Conclusion & Handoff to Q&A (45 sec)
-[08:00 - 10:00] Q&A Session with Prof. Kuntal Dey (2 min)
+[01:00 - 02:30] Slide 2: Multi-Signal NLP Architecture & Psycholinguistics (1.5 min)
+[02:30 - 05:00] LIVE DEMO: App Walkthrough, Highlighting, PDF Export & Counterfactuals (2.5 min)
+[05:00 - 06:15] Slide 3: Experimental Results & IEEE WELFake Benchmark (1.25 min)
+[06:15 - 07:30] Slide 4: Limitations, Conclusion & Future Scope (1.25 min)
+[07:30 - 08:00] Hand-off to Q&A (30 sec)
+[08:00 - 10:00] Q&A Defense with Prof. Kuntal Dey (2 min)
 ```
 
 ---
@@ -23,84 +23,88 @@
 ### Minute 0:00 - 1:00 | Introduction & Motivation
 **[Visual: Title Slide with Project Name, Team Members, and Architecture Diagram]**
 
-> *"Good morning, Professor Kuntal Dey. Today, we are proud to present **TruthRadar**, an explainable, multi-signal NLP framework designed for automated fake news detection.*
+> *"Good morning, Professor Kuntal Dey. Today, we are proud to present **TruthRadar**, an explainable, multi-signal NLP framework designed for automated fake news detection and forensic text explainability.*
 >
-> *According to MIT research published in Science, digital misinformation spreads nearly six times faster than verified facts. With billions consuming news algorithmically, fake news is no longer just factual errors—it is engineered with subtle rhetorical deception, emotional manipulation, and clickbait headline disparities.*
+> *Misinformation online spreads six times faster than verified facts. Yet, most automated detectors operate as opaque black boxes—giving a single probability number without linguistic or factual justification. If journalists, researchers, or citizens cannot understand **why** an article is flagged, the model cannot be trusted.*
 >
-> *Most existing AI models treat this as a pure black-box classification problem. If a model simply says '80% fake' without telling journalists or readers **why**, nobody can truly trust it. TruthRadar solves this by combining five NLP signals with Local Interpretable Model-agnostic Explanations (LIME)."*
+> *TruthRadar solves this by unifying statistical NLP, deep contextual embeddings, psycholinguistic stylometrics, domain credibility intelligence, and Local Interpretable Model-agnostic Explanations (LIME)."*
 
 ---
 
 ### Minute 1:00 - 2:30 | Problem Statement & Architecture
-**[Visual: Multi-Signal Flowchart: Input -> Preprocessing -> 5 Feature Extractors -> Ensemble -> LIME]**
+**[Visual: Multi-Signal Flowchart: Input -> Preprocessing -> 6 Signal Engines -> Calibrated Ensemble -> LIME]**
 
-> *"Our problem statement addresses three critical weaknesses in existing research:*
-> 1. ***Lexical Overfitting:*** *Standard n-gram models memorize specific political entities rather than structural deceit.*
-> 2. ***Clickbait Disconnect:*** *Malicious publishers write sensationalized, false headlines paired with generic body paragraphs.*
-> 3. ***The Interpretability Deficit:*** *End users need token-level transparency.*
+> *"Our problem statement tackles four core challenges in contemporary NLP:*
+> 1. ***Lexical Overfitting:*** *Models memorizing ephemeral political terms instead of structural deceit.*
+> 2. ***Clickbait Disparity:*** *Sensational headlines paired with benign body text.*
+> 3. ***Affective & Syntactic Manipulation:*** *Use of low readability, excessive shouting, and emotional intensifiers.*
+> 4. ***The Interpretability Deficit:*** *Providing token-level evidence.*
 >
-> *To solve this, TruthRadar uses a hybrid pipeline:*
-> - *First, **Lexical Statistics**: TF-IDF unigram and bigrams (10,000 features) with L2 Logistic Regression.*
-> - *Second, **Deep Contextual Semantics**: DistilBERT Transformer capturing long-range bidirectional dependencies.*
-> - *Third, **Headline-Body Semantic Consistency**: We compute 384-dimensional dense sentence embeddings using Sentence-BERT (MiniLM) and calculate cosine similarity to penalize clickbait discrepancy.*
-> - *Fourth, **Affective & Entity Profiling**: VADER sentiment analysis to measure emotional exaggeration, and spaCy Named Entity Recognition to track verified organizations and persons.*
-> - *Finally, **Weighted Ensembling** calibrated across all signals to output a single definitive Truth Score."*
+> *To solve this, TruthRadar combines six distinct analytical signals:*
+> - *First, **Lexical Statistics**: 10,000 sublinear TF-IDF n-grams with L2-regularized Logistic Regression.*
+> - *Second, **Deep Contextual Semantics**: DistilBERT Transformer for bidirectional contextual representations.*
+> - *Third, **Headline-Body Semantic Coherence**: Sentence-BERT (MiniLM) generating 384-dimensional dense vectors to calculate cosine alignment and penalize clickbait discrepancy.*
+> - *Fourth, **Psycholinguistic Stylometrics**: Quantifying Flesch Reading Ease, Flesch-Kincaid Grade Level, Type-Token Ratio for vocabulary richness, and a composite Sensationalism Index.*
+> - *Fifth, **Domain Credibility Intelligence**: Whitelist and blacklist registries with explicit Satire and Parody detection.*
+> - *Sixth, **Token-Level Explainability (LIME)**: Yielding interpretable feature attributions."*
 
 ---
 
-### Minute 2:30 - 4:30 | Live System Demonstration (The Game Changer)
+### Minute 2:30 - 5:00 | Live System Demonstration (The Game Changer)
 **[Action: Switch tab to browser and open https://truthradar-w9h24zcwzxu7hdo6fx9ckq.streamlit.app/]**
 
-> *"Rather than presenting static screenshots, we have deployed our complete system live to the cloud.*
+> *"Rather than showing slides, we have deployed our complete system live to the cloud.*
 >
-> *(1) In **Tab 1: Single Article Analysis**, let us paste a sensationalized news claim. Clicking 'Analyze Article' triggers the pipeline in under 50 milliseconds. You can see the gauge: Fake probability, credibility badge, sentiment compound score, and recognized entities.*
+> *(1) **Instant Analysis & PDF Audit Certificate:** When we analyze a news article, clicking 'Analyze News' computes all signals in under 50 milliseconds. Right at the top, notice this button: **'Download Official Forensic Audit Certificate'**. Clicking it generates a dynamic, publication-grade 1-page PDF forensic report with timestamps, component breakdowns, and attribution weights on the fly.*
 >
-> *(2) Here is the core scientific contribution: **LIME Explainable AI**. Looking at this interactive chart, the red bars show exact words pushing the prediction toward 'Fake'—words like 'shocking', 'conspiracy', 'unprecedented'—while green bars represent factual credibility anchors like 'spokesperson' or 'official'.*
+> *(2) **Inline Forensic Text Reader:** Next to our interactive LIME feature importance chart, look at the **'Inline Forensic Reader'** tab. The article is rendered with token-by-token visual highlights: red highlights indicate deceptive, sensational cues with hover tooltips, and green highlights anchor verified, neutral reporting vocabulary.*
 >
-> *(3) In **Tab 2: Headline-Body Consistency**, if we enter a clickbait headline paired with an unrelated body, our Sentence-BERT cosine similarity immediately drops below 0.4, flagging high clickbait divergence.*
+> *(3) **Psycholinguistic Diagnostics:** Below, our stylometrics dashboard displays the Sensationalism Index (penalizing all-caps shouting and exclamations), Flesch Reading Ease, and Type-Token Ratio, isolating overused emotional intensifiers like 'shocking' and 'conspiracy'.*
 >
-> *(4) In **Tab 3: Live Web Scraper**, users can simply paste any online news URL; the system fetches the DOM, strips HTML boilerplate, extracts the article, and evaluates it on the fly."*
+> *(4) **Live URL & Satire Intelligence:** In Tab 3, when a URL from a known satirical source like 'The Onion' is entered, our domain intelligence immediately fires a **Satire Alert**, warning that the content is parodic rather than factual.*
+>
+> *(5) **Counterfactual Rephrasing Sandbox:** At the bottom, we provide a Counterfactual Sandbox. If a user or editor tones down the sensational words, the system immediately recalculates the causal drop in fake probability in real time."*
 
 ---
 
-### Minute 4:30 - 6:00 | Experimental Results & Benchmark
-**[Visual: Evaluation Metrics Table & WELFake Confusion Matrix]**
+### Minute 5:00 - 6:15 | Experimental Results & Benchmark
+**[Visual: Evaluation Metrics Table & WELFake Benchmark]**
 
-> *"To rigorously validate our system, we benchmarked TruthRadar on the **IEEE WELFake dataset**, one of the largest academic benchmarks with 72,134 verified articles.*
+> *"We benchmarked TruthRadar on the **IEEE WELFake dataset**, one of the largest peer-reviewed benchmarks with 72,134 verified articles.*
 >
-> *We evaluated on a strict 20% hold-out test set of **14,414 unseen articles**:*
-> - *Our tuned TF-IDF model achieved **95.73% Accuracy**, **95.36% Precision**, and **96.37% Recall**.*
-> - *The high recall of 96.37% is crucial because in misinformation detection, False Negatives—letting fake news slip through as real—are the most dangerous errors.*
-> - *Our full ensemble achieves **96.84% Accuracy** and **96.81% F1-score**, outperforming traditional Naive Bayes and standalone SVM baselines.*
-> - *All 19 unit tests in our automated pytest suite achieve 100% pass rates."*
+> *On a strict 20% hold-out test set of **14,414 unseen articles**:*
+> - *Our tuned TF-IDF classifier achieved **95.73% Accuracy**, **95.36% Precision**, and **96.37% Recall**.*
+> - *The high recall of 96.37% ensures False Negatives—letting dangerous fake news slip through—are strictly minimized.*
+> - *Our full ensemble achieves **96.84% Accuracy** and **96.81% F1-score**, operating at an average latency of ~35 milliseconds per article.*
+> - *Our codebase includes **28 automated unit tests** covering all modules with a 100% pass rate."*
 
 ---
 
-### Minute 6:00 - 7:30 | Limitations, Future Scope & Conclusion
-**[Visual: Summary Slide with Key Takeaways and Repository Links]**
+### Minute 6:15 - 7:30 | Limitations, Future Scope & Conclusion
+**[Visual: Limitations & Conclusion Slide]**
 
-> *"We also analyzed the system's scientific limitations:*
-> 1. ***Domain & Temporal Drift:*** *Models trained on past news corpora require continuous retraining as geopolitical terminology evolves.*
-> 2. ***Satire Detection:*** *Subtle irony and satirical outlets like The Onion remain challenging for purely statistical NLP without background world knowledge.*
+> *"We also evaluated our scientific limitations:*
+> 1. ***Temporal & Domain Drift:*** *Models trained on historical corpora require continuous active learning as geopolitical topics evolve.*
+> 2. ***Knowledge-Graph Grounding:*** *While our system excels at stylistic and semantic pattern recognition, multi-hop fact-checking requires external knowledge-graph triples.*
 >
-> *For future work, we plan to incorporate real-time knowledge-graph verification and expand to multilingual Indian languages.*
+> *For future work, we aim to integrate real-time knowledge-graph verification and expand to Indic languages.*
 >
-> *In conclusion, TruthRadar bridges the gap between state-of-the-art predictive accuracy and explainable human interpretability.*
+> *In summary, TruthRadar bridges the gap between state-of-the-art predictive performance and transparent, user-facing interpretability.*
 >
-> *Thank you, Professor Dey. We are now eager to take your questions."*
+> *Thank you, Professor Dey. We are now happy to answer your questions."*
 
 ---
 
 ## 🎯 Anticipated 2-Minute Q&A Preparation with Prof. Kuntal Dey
 
-### Q1: *"Why use both TF-IDF and BERT? Why not just use BERT alone?"*
-> **Answer:** *"Sir, while BERT excels at contextual nuances, it is computationally heavy (~110ms per inference and larger memory footprint). TF-IDF captures global n-gram frequency distributions and lexical markers in just 18ms. Furthermore, LIME explanations on linear models like TF-IDF produce faithful, interpretable token attributions without the high variance often seen when perturbing deep transformer attention layers. Combining them gives us high accuracy with fast inference."*
+### Q1: *"Why did you include Stylometric and Readability metrics alongside Deep Learning?"*
+> **Answer:** *"Sir, computational linguistics research (such as Vosoughi et al. in Science and Pennebaker’s psycholinguistic work) demonstrates that deceptive articles are engineered for viral emotional contagion. They systematically exhibit lower Flesch-Kincaid reading levels, lower Type-Token Ratios (lexical diversity), and higher affective arousal (exclamations, intensifiers, shouting syntax). Incorporating these stylometric features gives our ensemble orthogonal linguistic signals that pure semantic embeddings can sometimes overlook."*
 
-### Q2: *"How do you handle clickbait where the headline is fake but the body is taken from a real news article?"*
-> **Answer:** *"That is exactly why we introduced our Headline-Body Semantic Consistency checker. We pass both through Sentence-BERT (MiniLM-L6-v2) to generate 384-dimensional dense vectors and compute their cosine similarity. If the semantic similarity is low (below 0.45), our ensemble applies an automated clickbait penalty to the fake score, preventing malicious actors from gaming body-only classifiers."*
+### Q2: *"How do you handle Satire like 'The Onion', which mimics news style perfectly?"*
+> **Answer:** *"Pure text classification models frequently mistake satire for fake news or real news because satire uses clean syntax and deadpan irony. That is why we added our Domain Reputation & Satire Intelligence Engine. When analyzing URLs or known sources, TruthRadar recognizes accredited satirical registries and displays an explicit Satire Alert, explaining that the text is parodic rather than deliberately malicious disinformation."*
 
-### Q3: *"How does LIME actually compute the word importance in your app?"*
-> **Answer:** *"LIME creates perturbed variations of the input text by randomly masking words, runs each perturbation through the classifier, and weights the samples by their cosine distance to the original text. It then fits an interpretable ridge regression surrogate locally around that prediction. The learned coefficients of that local model represent the exact positive or negative contribution of each word."*
+### Q3: *"How does your Counterfactual Sandbox contribute to Explainability?"*
+> **Answer:** *"Explainable AI is not just about showing static bar charts—it is about causal understanding. By allowing the evaluator to modify specific tokens (e.g. replacing 'SHOCKING' with 'Reported' or removing exclamation marks) and immediately observing the shift in prediction, the user can verify that the model's decision boundaries are sensitive to meaningful semantic cues rather than spurious artifacts."*
 
-### Q4: *"What dataset did you use and why did you choose it over others like LIAR or ISOT?"*
-> **Answer:** *"We selected the IEEE WELFake dataset because it resolves significant biases present in smaller datasets. ISOT and LIAR are smaller (12k to 40k articles) and suffer from source domain leakage. WELFake unifies 72,134 articles across four major benchmark databases, providing a more balanced and diverse linguistic representation."*
+### Q4: *"What is the difference between LIME and Attention-based explanation in Transformers?"*
+> **Answer:** *"Attention weights show which token representations were attended to in intermediate layers, but extensive research (e.g. Jain & Wallace, 'Attention is not Explanation') shows attention weights do not always correlate with causal feature importance. LIME, by contrast, operates externally as a local surrogate model: it perturbs the input, measures the output change, and computes true mathematical feature attribution."*

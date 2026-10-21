@@ -8,10 +8,16 @@ Interactive Streamlit Web Application combining multi-signal NLP models:
 - VADER Sentiment Polarity
 - spaCy Named Entity Recognition
 - LIME Explainable AI Visualizations
+- Psycholinguistics & Stylometric Profiling (Sensationalism, Readability, TTR)
+- Domain Reputation & Satire Intelligence
+- Interactive Token-Level Forensic Highlighting
+- Dynamic 1-Click PDF Forensic Audit Certificate Export
+- Counterfactual Rephrasing Sandbox
 """
 
 import sys
 from pathlib import Path
+from datetime import datetime
 
 # Add project root to path
 BASE_DIR = Path(__file__).resolve().parent
@@ -32,6 +38,10 @@ from src.ner_analyzer import extract_entities
 from src.explainability import explain_prediction, create_explanation_chart
 from src.fake_score import calculate_fake_score
 from src.scraper import scrape_article_from_url
+from src.stylometrics import analyze_stylometrics
+from src.domain_trust import evaluate_domain_trust
+from src.visual_highlighter import generate_highlighted_html
+from src.pdf_generator import generate_forensic_pdf
 
 # =====================================================================
 # STREAMLIT PAGE CONFIGURATION & STYLING
@@ -60,7 +70,7 @@ st.markdown("""
     .verdict-card {
         padding: 1.5rem;
         border-radius: 12px;
-        margin: 1rem 0;
+        margin: 1rem 0 0.5rem 0;
         text-align: center;
         color: white;
     }
@@ -83,13 +93,6 @@ st.markdown("""
         font-weight: 500;
         opacity: 0.95;
     }
-    .metric-card {
-        background: #F9FAFB;
-        border: 1px solid #E5E7EB;
-        border-radius: 10px;
-        padding: 1rem;
-        text-align: center;
-    }
     .badge {
         display: inline-block;
         padding: 0.25rem 0.6rem;
@@ -111,6 +114,13 @@ st.markdown("""
         font-size: 0.88rem;
         color: #78350F;
         margin-top: 1.5rem;
+    }
+    .intel-card {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -170,6 +180,8 @@ with st.sidebar:
     st.write("• **Sentiment Engine:** 🟢 NLTK VADER")
     st.write("• **Named Entity Engine:** 🟢 spaCy")
     st.write("• **Explainable AI:** 🟢 LIME Engine")
+    st.write("• **Stylometric Profiling:** 🟢 Active")
+    st.write("• **Domain Intelligence:** 🟢 Active")
 
     if not tfidf_clf.is_loaded:
         st.warning("⚠️ Baseline model not found. Run `python training/train_tfidf.py` to build the model.")
@@ -182,10 +194,9 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("### 📖 **About TruthRadar**")
+    st.markdown("### 📖 **Academic Attribution**")
     st.caption(
-        "TruthRadar is a multi-modal NLP system designed for academic demonstration and news analysis. "
-        "It evaluates linguistic cues, statistical word frequencies, transformer embeddings, and emotional polarity."
+        "TruthRadar is a research-grade NLP system designed for academic evaluation under the supervision of **Prof. Kuntal Dey**."
     )
 
 
@@ -194,7 +205,7 @@ with st.sidebar:
 # =====================================================================
 st.markdown("<div class='main-header'>🛡️ TruthRadar</div>", unsafe_allow_html=True)
 st.markdown(
-    "<div class='sub-header'>AI-Powered Fake News Detection & Explainability System — Multi-Signal NLP Architecture</div>",
+    "<div class='sub-header'>AI-Powered Fake News Detection & Forensic Explainability System — Multi-Signal NLP Architecture</div>",
     unsafe_allow_html=True
 )
 
@@ -205,7 +216,7 @@ st.markdown(
 tab_paste, tab_headline, tab_url = st.tabs([
     "📄 Tab 1: Paste Article",
     "📰 Tab 2: Headline + Article",
-    "🌐 Tab 3: Analyze URL"
+    "🌐 Tab 3: Live Web URL & Domain Intel"
 ])
 
 input_headline = ""
@@ -227,7 +238,6 @@ with tab_paste:
         key="paste_area"
     )
     if paste_text:
-        # Separate headline if first line resembles one
         h_cand, b_cand = extract_headline_and_body(paste_text)
         if h_cand and h_cand != b_cand:
             input_headline = h_cand
@@ -262,9 +272,22 @@ with tab_url:
     st.markdown("##### Extract and analyze article from a live web link:")
     url_input = st.text_input(
         "News Article URL",
-        placeholder="https://www.reuters.com/world/... or https://www.bbc.com/news/...",
+        placeholder="e.g. https://www.reuters.com/... or https://www.theonion.com/...",
         key="url_input"
     )
+    
+    # Live Domain Reputation Check
+    if url_input.strip():
+        domain_intel = evaluate_domain_trust(url_input)
+        if domain_intel["is_satire"]:
+            st.warning(f"🎭 **SATIRE ALERT:** {domain_intel['explanation']}")
+        elif "High Trust" in domain_intel["trust_tier"]:
+            st.success(f"🏛️ **VERIFIED PUBLISHER:** {domain_intel['explanation']}")
+        elif "High Risk" in domain_intel["trust_tier"]:
+            st.error(f"🚨 **DOCUMENTED MISINFORMATION DOMAIN:** {domain_intel['explanation']}")
+        else:
+            st.info(f"🌐 **DOMAIN STATUS:** {domain_intel['explanation']}")
+
     fetch_btn = st.button("📥 Fetch & Extract Article", key="fetch_btn")
     
     if "scraped_data" not in st.session_state:
@@ -303,7 +326,6 @@ with col_btn:
     analyze_clicked = st.button("🚀 ANALYZE NEWS", type="primary", use_container_width=True)
 
 if analyze_clicked:
-    # 1. Validate Input
     full_text_for_eval = (input_headline + " " + input_article).strip() if input_headline else input_article.strip()
     is_valid, error_msg = validate_text(full_text_for_eval)
 
@@ -340,6 +362,30 @@ if analyze_clicked:
             # G. LIME Explainability
             lime_eval = explain_prediction(full_text_for_eval)
 
+            # H. Stylometric & Psycholinguistic Profiling
+            stylometrics_eval = analyze_stylometrics(full_text_for_eval)
+
+            # I. Domain Trust Assessment
+            domain_eval = None
+            if input_source_meta.get("URL"):
+                domain_eval = evaluate_domain_trust(input_source_meta["URL"])
+            elif url_input.strip():
+                domain_eval = evaluate_domain_trust(url_input)
+
+            # J. Generate Instant Forensic Audit PDF
+            pdf_bytes = generate_forensic_pdf(
+                article_text=full_text_for_eval,
+                verdict=fake_score_res["prediction"],
+                fake_prob=fake_score_res["fake_percentage"] / 100.0,
+                confidence=fake_score_res["confidence_score"],
+                sentiment_data=sentiment_eval,
+                entities_data=ner_eval.get("entities_by_type", {}),
+                lime_weights=lime_eval.get("raw_explanation", []),
+                stylometrics=stylometrics_eval,
+                headline_consistency=headline_eval,
+                domain_info=domain_eval
+            )
+
         # =============================================================
         # RESULTS DISPLAY
         # =============================================================
@@ -362,7 +408,18 @@ if analyze_clicked:
         </div>
         """, unsafe_allow_html=True)
 
-        # 2. Key Metrics Row
+        # 2. One-Click Instant PDF Export Button
+        download_filename = f"TruthRadar_Forensic_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        st.download_button(
+            label="📥 Download Official Forensic Audit Certificate (PDF)",
+            data=pdf_bytes,
+            file_name=download_filename,
+            mime="application/pdf",
+            use_container_width=True
+        )
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 3. Key Metrics Row
         m1, m2, m3, m4 = st.columns(4)
         with m1:
             st.metric("Fake Probability", f"{fake_score_res['fake_percentage']}%")
@@ -373,7 +430,7 @@ if analyze_clicked:
         with m4:
             st.metric("Overall Sentiment", sentiment_eval["label"])
 
-        # 3. Model Breakdown & Weights
+        # 4. Model Breakdown & Weights
         st.markdown("#### 🔬 **Model Breakdown & Component Signals**")
         b1, b2, b3 = st.columns(3)
 
@@ -404,53 +461,75 @@ if analyze_clicked:
             else:
                 st.caption("No separate headline provided for similarity check.")
 
-        # 4. Explainable AI & LIME Feature Importance
-        st.markdown("#### 🔍 **Why Did The Model Decide This? (Explainable AI)**")
-        st.caption(
-            "LIME (Local Interpretable Model-agnostic Explanations) highlights the specific words and linguistic features "
-            "that pushed the model toward a FAKE (red) or REAL (green) classification."
-        )
+        # 5. Explainable AI: Interactive LIME Chart + Inline Forensic Highlighter
+        st.markdown("#### 🔍 **Explainable AI & Forensic Reader**")
+        tab_lime_chart, tab_text_highlighter = st.tabs([
+            "📊 Feature Importance Chart (LIME)",
+            "🔍 Inline Forensic Reader (Token Highlights)"
+        ])
 
-        col_lime_chart, col_lime_table = st.columns([3, 2])
-        with col_lime_chart:
-            lime_fig = create_explanation_chart(lime_eval)
-            if lime_fig:
-                st.plotly_chart(lime_fig, use_container_width=True)
-            else:
-                st.info("Train the TF-IDF model to generate interactive LIME word charts.")
+        with tab_lime_chart:
+            col_lime_chart, col_lime_table = st.columns([3, 2])
+            with col_lime_chart:
+                lime_fig = create_explanation_chart(lime_eval)
+                if lime_fig:
+                    st.plotly_chart(lime_fig, use_container_width=True)
+                else:
+                    st.info("Train the TF-IDF model to generate interactive LIME word charts.")
 
-        with col_lime_table:
-            st.markdown("**Top Influential Terms:**")
-            if lime_eval.get("explanation_list"):
-                df_exp = pd.DataFrame(lime_eval["explanation_list"])
-                df_exp = df_exp[["word", "weight", "supports"]].rename(
-                    columns={"word": "Word / Token", "weight": "Influence Weight", "supports": "Supports"}
-                )
-                st.dataframe(df_exp, use_container_width=True, height=290)
-            else:
-                st.caption("No feature weights available.")
+            with col_lime_table:
+                st.markdown("**Top Influential Terms:**")
+                if lime_eval.get("explanation_list"):
+                    df_exp = pd.DataFrame(lime_eval["explanation_list"])
+                    df_exp = df_exp[["word", "weight", "supports"]].rename(
+                        columns={"word": "Word / Token", "weight": "Influence Weight", "supports": "Supports"}
+                    )
+                    st.dataframe(df_exp, use_container_width=True, height=290)
+                else:
+                    st.caption("No feature weights available.")
 
-        # 5. Sentiment & Named Entities Columns
+        with tab_text_highlighter:
+            st.markdown("**Token-Level Forensic Attribution in Context:**")
+            st.caption("The article text is rendered below with words dynamically highlighted: red indicates deceitful/sensationalist cues, while green indicates credibility anchors.")
+            highlighted_card = generate_highlighted_html(full_text_for_eval, lime_eval.get("raw_explanation", []))
+            st.markdown(highlighted_card, unsafe_allow_html=True)
+
+        # 6. Psycholinguistic & Stylometrics Dashboard
+        st.markdown("#### 🧠 **Psycholinguistic & Stylometric Diagnostics**")
+        sty1, sty2, sty3, sty4 = st.columns(4)
+        with sty1:
+            sens_val = stylometrics_eval["sensationalism_score"]
+            st.metric("Sensationalism Index", f"{sens_val}/100", delta="- High Arousal" if sens_val > 40 else "+ Measured", delta_color="inverse")
+            st.caption(f"Exclamations: {stylometrics_eval['exclamation_count']} | Shouting (Caps): {stylometrics_eval['caps_ratio']*100:.1f}%")
+        with sty2:
+            st.metric("Flesch Reading Ease", f"{stylometrics_eval['flesch_reading_ease']}/100")
+            st.caption(stylometrics_eval["readability_label"])
+        with sty3:
+            st.metric("Reading Grade Level", f"Grade {stylometrics_eval['flesch_kincaid_grade']}")
+            st.caption(f"Avg words/sentence: {stylometrics_eval['avg_sentence_length']}")
+        with sty4:
+            st.metric("Lexical Diversity (TTR)", f"{stylometrics_eval['type_token_ratio']}")
+            st.caption("Vocabulary Richness (Unique/Total Words)")
+
+        if stylometrics_eval["intensifiers_found"]:
+            st.markdown(f"**Flagged Emotional Intensifiers:** " + " ".join([f"<span class='badge' style='background:#FEE2E2; color:#991B1B;'>{w}</span>" for w in stylometrics_eval["intensifiers_found"]]), unsafe_allow_html=True)
+
+        # 7. Sentiment & Named Entities Columns
         col_sent, col_ner = st.columns(2)
 
         with col_sent:
             st.markdown("#### 🎭 **Sentiment & Emotional Tone**")
             st.write(f"**Tone Assessment:** {sentiment_eval['tone_description']}")
-            
-            # Polarity metrics
             sp1, sp2, sp3 = st.columns(3)
             sp1.metric("Positive", f"{sentiment_eval['positive'] * 100:.1f}%")
             sp2.metric("Neutral", f"{sentiment_eval['neutral'] * 100:.1f}%")
             sp3.metric("Negative", f"{sentiment_eval['negative'] * 100:.1f}%")
-            
             st.write(f"Compound Polarity Score: `{sentiment_eval['compound']}` (Range: -1.0 to +1.0)")
-            st.caption("Note: Emotionally charged, sensationalized phrasing is common in clickbait/hoaxes.")
 
         with col_ner:
             st.markdown("#### 🏷️ **Named Entities Identified**")
             if ner_eval.get("entities_by_type"):
                 st.write(f"**Engine:** {ner_eval.get('engine')}")
-                # Render formatted entity badges
                 for label, items in ner_eval["entities_by_type"].items():
                     badge_class = "badge-person" if label == "PERSON" else "badge-org" if label == "ORG" else "badge-gpe" if label in ["GPE", "LOC"] else "badge-date" if label == "DATE" else "badge-money"
                     items_str = " ".join([f"<span class='badge {badge_class}'>{it}</span>" for it in items[:6]])
@@ -458,16 +537,19 @@ if analyze_clicked:
             else:
                 st.info("No named entities detected in the text.")
 
-        # 6. Source Metadata (if available)
-        if input_source_meta:
-            st.markdown("#### 📋 **Article Metadata**")
-            meta_cols = st.columns(len(input_source_meta))
-            for i, (k, v) in enumerate(input_source_meta.items()):
-                with meta_cols[i]:
-                    st.markdown(f"**{k}**")
-                    st.write(str(v))
+        # 8. Counterfactual What-If Sandbox (Interactive Academic Feature)
+        with st.expander("🔬 **Counterfactual Sandbox: Test Rephrasing & Sensitivity**", expanded=False):
+            st.caption("Experiment with removing sensational terms, modifying headlines, or calming emotional intensifiers to observe real-time causal shifts in prediction:")
+            sandbox_text = st.text_area("Edit text for live sensitivity re-test:", value=full_text_for_eval, height=120, key="sandbox_area")
+            if st.button("⚡ Test Counterfactual Shift", key="sandbox_btn"):
+                quick_pred = tfidf_clf.predict(sandbox_text)
+                quick_sty = analyze_stylometrics(sandbox_text)
+                sc1, sc2, sc3 = st.columns(3)
+                sc1.metric("New Fake Probability", f"{quick_pred.get('fake_probability', 0)*100:.1f}%")
+                sc2.metric("New Prediction", quick_pred.get("prediction", "N/A"))
+                sc3.metric("New Sensationalism Score", f"{quick_sty['sensationalism_score']}/100")
 
-        # 7. Fact-Checking Disclaimer
+        # 9. Fact-Checking Disclaimer
         st.markdown("""
         <div class='disclaimer-box'>
             <b>🛡️ Academic & Fact-Checking Disclaimer:</b><br>
